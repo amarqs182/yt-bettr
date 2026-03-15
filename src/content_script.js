@@ -1,9 +1,10 @@
 /**
  * src/content_script.js
  *
- * 1. Loads settings from chrome.storage.local
- * 2. Syncs them to the MAIN world's localStorage (since features run in MAIN)
- * 3. Dispatches event for live-sync without reload
+ * Runs in ISOLATED world.
+ * 1. Loads settings from chrome.storage.local.
+ * 2. Mirrors them to document.documentElement.dataset for the MAIN world to see.
+ * 3. Does NOT use inline scripts (to bypass YouTube CSP).
  */
 
 const DEFAULTS = {
@@ -30,34 +31,27 @@ const DEFAULTS = {
     run_mode:          'lite'
 };
 
-// Function to inject settings into the Page's context (MAIN world)
-const injectToMainWorld = (settings) => {
-    const script = document.createElement('script');
-    script.textContent = `
-        (() => {
-            const data = ${JSON.stringify(settings)};
-            for (const [k, v] of Object.entries(data)) {
-                localStorage.setItem('ytl-' + k, String(v));
-            }
-            window.dispatchEvent(new CustomEvent('yt-lite-settings-updated'));
-        })();
-    `;
-    (document.head || document.documentElement).appendChild(script);
-    script.remove();
+const syncToDataset = (settings) => {
+    // We prefix each key with ytl- to avoid conflicts
+    for (const [k, v] of Object.entries(settings)) {
+        document.documentElement.setAttribute('data-ytl-' + k, String(v));
+    }
+    // Also dispatch a custom event that the MAIN world can hear
+    window.dispatchEvent(new CustomEvent('yt-lite-sync'));
 };
 
-// Initial Sync
+// Initial Fetch and Sync
 chrome.storage.local.get(null, (stored) => {
     const opts = { ...DEFAULTS, ...stored };
-    injectToMainWorld(opts);
+    syncToDataset(opts);
 });
 
-// Live Sync on change
+// Live Sync on change (popup clicks)
 chrome.storage.onChanged.addListener((changes, area) => {
     if (area !== 'local') return;
     const updates = {};
     for (const [key, { newValue }] of Object.entries(changes)) {
         updates[key] = newValue;
     }
-    injectToMainWorld(updates);
+    syncToDataset(updates);
 });

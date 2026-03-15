@@ -1,7 +1,7 @@
 /**
  * src/features/enhancer.js
  * Premium Visual and Audio Enhancements for High Mode.
- * Corrected: Now handles world-to-world sync correctly.
+ * Reads settings from DOM attributes to bypass isolated world storage gap.
  */
 
 (function() {
@@ -9,45 +9,55 @@
 
     if (window.self !== window.top || window.location.href === 'about:blank') return;
 
-    const getSettings = () => ({
-        useSharpness: localStorage.getItem('ytl-enhance_sharpness') === 'true',
-        useHDR:       localStorage.getItem('ytl-enhance_hdr')       === 'true',
-        useAudio:     localStorage.getItem('ytl-enhance_audio')     === 'true'
-    });
-
-    // --- 1. VISUAL FILTERS ---
-    const updateVisualFX = () => {
-        const { useSharpness, useHDR } = getSettings();
-        const video = document.querySelector('video.html5-main-video');
-        if (!video) return;
-
-        let filters = [];
-        // Ultra-aggressive HDR for testing
-        if (useHDR) filters.push('contrast(1.15) saturate(1.40) brightness(1.05)');
-        if (useSharpness) filters.push('contrast(1.02)');
-
-        if (filters.length > 0) {
-            video.style.setProperty('filter', filters.join(' '), 'important');
-            video.style.setProperty('image-rendering', '-webkit-optimize-contrast', 'important');
-            console.log("YT Lite: Visual Filters Applied");
-        } else {
-            video.style.filter = '';
-        }
+    // Helper to get settings from the HTML element's dataset
+    const getSetting = (key) => {
+        return document.documentElement.getAttribute('data-ytl-' + key) === 'true';
     };
 
-    // --- 2. AUDIO FX (Musical Compressor) ---
+    // --- 1. VISUAL FILTERS (CSS Injected) ---
+    const updateVisualFX = () => {
+        const useSharpness = getSetting('enhance_sharpness');
+        const useHDR       = getSetting('enhance_hdr');
+        
+        const id = 'yt-lite-premium-fx';
+        let style = document.getElementById(id);
+        
+        if (!useSharpness && !useHDR) {
+            if (style) style.remove();
+            return;
+        }
+
+        if (!style) {
+            style = document.createElement('style');
+            style.id = id;
+            (document.head || document.documentElement).appendChild(style);
+        }
+
+        let filters = [];
+        // Aggressive filters for visible impact
+        if (useHDR) filters.push('contrast(1.15) saturate(1.35) brightness(1.04)');
+        if (useSharpness) filters.push('contrast(1.03)');
+
+        style.textContent = `
+            video.html5-main-video {
+                filter: ${filters.join(' ')} !important;
+                ${useSharpness ? 'image-rendering: -webkit-optimize-contrast !important; image-rendering: crisp-edges !important;' : ''}
+            }
+        `;
+    };
+
+    // --- 2. AUDIO ENHANCEMENTS (Dynamic Hook) ---
     let audioCtx = null;
     let compressor = null;
 
     const applyAudioFX = () => {
-        const { useAudio } = getSettings();
-        const video = document.querySelector('video');
-        if (!video) return;
-
-        if (!useAudio) {
+        if (!getSetting('enhance_audio')) {
             if (compressor) compressor.threshold.value = 0; // Bypass
             return;
         }
+
+        const video = document.querySelector('video');
+        if (!video) return;
 
         if (video.ytLiteAudioHooked) {
             if (compressor) compressor.threshold.value = -20;
@@ -58,40 +68,41 @@
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             const source = audioCtx.createMediaElementSource(video);
             
-            // "Musical" Compressor setup
             compressor = audioCtx.createDynamicsCompressor();
-            compressor.threshold.value = -20; // Lower threshold to catch more
-            compressor.knee.value = 30;      // Soft knee for music
-            compressor.ratio.value = 3;      // Subtle ratio
-            compressor.attack.value = 0.01;  // Slow attack to preserve punch
+            compressor.threshold.value = -20;
+            compressor.knee.value = 30;
+            compressor.ratio.value = 3;
+            compressor.attack.value = 0.01;
             compressor.release.value = 0.25;
 
             source.connect(compressor);
             compressor.connect(audioCtx.destination);
             
             video.ytLiteAudioHooked = true;
-            console.log("YT Lite: Musical Audio Compressor Active");
+            console.log("YT Lite: Premium Audio Hooked");
         } catch (e) {
-            // Note: CORS issues are common on YouTube Music/Official videos
-            console.warn("YT Lite: Audio Enhancement blocked by YouTube's security policy (CORS).");
+            // CORS limitation
         }
     };
 
-    // --- EVENT LISTENERS ---
-    window.addEventListener('yt-lite-settings-updated', () => {
+    // Listen for sync event from isolated world
+    window.addEventListener('yt-lite-sync', () => {
         updateVisualFX();
         applyAudioFX();
     });
 
+    // Run on startup and navigation
     const run = () => {
         updateVisualFX();
         applyAudioFX();
     };
 
     window.addEventListener('yt-navigate-finish', () => setTimeout(run, 1500));
-    run();
     
-    // Pulse check to prevent YouTube from stripping styles
-    setInterval(updateVisualFX, 4000);
+    // Initial run might need a delay to ensure Isolated world set the attributes
+    setTimeout(run, 100);
+    
+    // Re-apply styles frequently to fight YT resets
+    setInterval(updateVisualFX, 3000);
 
 })();
