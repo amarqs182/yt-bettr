@@ -133,21 +133,23 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderLogs() {
         if (!logOutput) return;
         if (allLogs.length === 0) {
-            logOutput.innerHTML = '<div class="t-line t-empty">Aguardando bloqueios (recarregue a página)... <span class="t-cursor"></span></div>';
+            logOutput.innerHTML = '<div class="t-line">Aguardando telemetria...</div>';
             return;
         }
 
         let html = '';
         const ruleNames = {
-            1: "QOE_STATS",
-            2: "ADS_STATS",
-            3: "LOG_EVENT"
+            1: "QOE",
+            2: "ADS",
+            3: "LOG"
         };
 
         allLogs.forEach(l => {
-            const ruleColor = l.ruleId === 3 ? 'error' : 'warn'; 
-            const ruleName = ruleNames[l.ruleId] || `RULE_${l.ruleId}`;
-            html += `<div class="t-line"><span class="t-ts">[${l.ts}]</span> <span class="t-msg ${ruleColor}">[${ruleName}] BLOCKED: ${l.url}</span></div>`;
+            const isError = l.ruleId === 3; 
+            const ruleClass = isError ? 't-error' : 't-blocked';
+            const ruleName = ruleNames[l.ruleId] || `R${l.ruleId}`;
+            // Simpler, cleaner terminal output
+            html += `<div class="t-line"><span class="t-time">[${l.ts}]</span> <span class="${ruleClass}">${ruleName}</span> blocked</div>`;
         });
         logOutput.innerHTML = html;
     }

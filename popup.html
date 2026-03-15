@@ -2,504 +2,482 @@
 <html lang="pt-BR">
 <head>
     <meta charset="utf-8">
-    <title>▶ ytライト</title>
+    <title>YT Lite</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
 
-        /* === M3 Design Tokens (Dark Scheme) === */
+        /* === Minimalist Design Tokens === */
         :root {
-            --md-sys-color-surface:             #1C1B1F;
-            --md-sys-color-surface-container:   #211F26;
-            --md-sys-color-surface-container-high: #2B2930;
-            --md-sys-color-on-surface:          #E6E1E5;
-            --md-sys-color-on-surface-variant:  #CAC4D0;
-            --md-sys-color-primary:             #A5D6A7; /* Verde Pastel */
-            --md-sys-color-on-primary:          #0A3D12;
-            --md-sys-color-primary-container:   #1E4023;
-            --md-sys-color-secondary:           #80DEEA; /* Teal Pastel */
-            --md-sys-color-tertiary:            #FFD54F; /* Amber for warnings */
-            --md-sys-color-error:               #F2B8B8;
-            --md-sys-color-outline:             #938F99;
-            --md-sys-color-outline-variant:     #49454F;
-            --md-sys-color-inverse-surface:     #E6E1E5;
+            /* Light Theme (Default) */
+            --bg-base: #FFFFFF;
+            --bg-surface: #F9FAFB;
+            --bg-elevated: #F3F4F6;
+            --text-primary: #111827;
+            --text-secondary: #6B7280;
+            --text-tertiary: #9CA3AF;
+            --border-color: #E5E7EB;
+            --accent-color: #10B981; /* Minimalist Green */
+            --accent-hover: #059669;
+            --danger-color: #EF4444;
+            --danger-bg: #FEF2F2;
+            
+            --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-full: 9999px;
+        }
 
-            --md-ref-typeface-brand:   'Roboto', system-ui, sans-serif;
-            --md-ref-typeface-plain:   'Roboto', system-ui, sans-serif;
-            --md-ref-typeface-mono:    'Roboto Mono', 'Cascadia Code', monospace;
+        :root[data-theme="dark"] {
+            --bg-base: #0F1115;
+            --bg-surface: #16181D;
+            --bg-elevated: #1F2229;
+            --text-primary: #F3F4F6;
+            --text-secondary: #9CA3AF;
+            --text-tertiary: #6B7280;
+            --border-color: #2D3139;
+            --accent-color: #10B981;
+            --danger-color: #F87171;
+            --danger-bg: rgba(239, 68, 68, 0.1);
         }
 
         :root[data-theme="amoled"] {
-            --md-sys-color-surface:             #000000;
-            --md-sys-color-surface-container:   #090909;
-            --md-sys-color-surface-container-high: #121212;
-            --md-sys-color-on-surface:          #FFFFFF;
-        }
-
-        :root[data-theme="light"] {
-            --md-sys-color-surface:             #FDFDF5;
-            --md-sys-color-surface-container:   #F4EFE6;
-            --md-sys-color-surface-container-high: #EBE5DB;
-            --md-sys-color-on-surface:          #1A1C19;
-            --md-sys-color-on-surface-variant:  #43483E;
-            --md-sys-color-primary:             #386A20;
-            --md-sys-color-on-primary:          #FFFFFF;
-            --md-sys-color-primary-container:   #B7F397;
-            --md-sys-color-outline:             #74796D;
-            --md-sys-color-outline-variant:     #C3C8BB;
-            --md-sys-color-inverse-surface:     #2F312D;
+            --bg-base: #000000;
+            --bg-surface: #090909;
+            --bg-elevated: #121212;
+            --text-primary: #FFFFFF;
+            --text-secondary: #A1A1AA;
+            --border-color: #27272A;
         }
 
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            width: 380px;
-            max-height: 580px;
+            width: 360px;
+            max-height: 560px;
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            background: var(--md-sys-color-surface);
-            color: var(--md-sys-color-on-surface);
-            font-family: var(--md-ref-typeface-brand);
-            font-size: 14px;
+            background: var(--bg-base);
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            font-size: 13px;
+            -webkit-font-smoothing: antialiased;
         }
 
-        /* === TOP APP BAR (M3) === */
-        .top-app-bar {
+        /* === HEADER === */
+        header {
             display: flex;
             align-items: center;
-            padding: 0 8px;
-            height: 56px;
-            background: var(--md-sys-color-surface-container);
+            justify-content: space-between;
+            padding: 16px 20px;
+            background: var(--bg-base);
+            border-bottom: 1px solid var(--border-color);
             flex-shrink: 0;
-            gap: 4px;
-        }
-        .icon-btn {
-            width: 40px; height: 40px;
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer;
-            font-size: 18px;
-            background: none; border: none; color: var(--md-sys-color-on-surface);
-            transition: background 0.15s;
-            flex-shrink: 0;
-        }
-        .icon-btn:hover { background: rgba(230,225,229,0.08); }
-        .top-app-bar-title {
-            font-size: 18px; font-weight: 500;
-            flex: 1;
-            padding: 0 8px 0 16px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            z-index: 10;
         }
         
-        #theme_selector {
-            margin-right: 12px;
-            padding: 4px 8px;
-            border-radius: 6px;
-            background: var(--md-sys-color-surface-container-high);
-            color: var(--md-sys-color-on-surface);
-            border: 1px solid var(--md-sys-color-outline-variant);
-            font-family: inherit;
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .logo-icon {
+            font-size: 18px;
+            line-height: 1;
+        }
+
+        .logo-text {
+            font-size: 16px;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+        }
+
+        select#theme_selector {
+            appearance: none;
+            background: var(--bg-surface);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+            padding: 4px 10px;
+            border-radius: var(--radius-sm);
+            font-family: var(--font-sans);
+            font-size: 11px;
+            font-weight: 500;
             cursor: pointer;
-            font-size: 12px;
             outline: none;
+            transition: all 0.2s ease;
+        }
+        
+        select#theme_selector:hover {
+            color: var(--text-primary);
+            border-color: var(--text-tertiary);
         }
 
         /* === SCROLL AREA === */
         .scroll-area {
             flex: 1;
             overflow-y: auto;
-            scrollbar-width: thin;
-            scrollbar-color: var(--md-sys-color-outline-variant) transparent;
-            padding-bottom: 4px;
+            padding: 16px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
         }
 
-        /* === SECTION HEADER === */
+        .scroll-area::-webkit-scrollbar { width: 4px; }
+        .scroll-area::-webkit-scrollbar-track { background: transparent; }
+        .scroll-area::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+
+        /* === SECTIONS === */
+        .section {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
         .section-header {
-            display: flex; align-items: center; gap: 10px;
-            padding: 16px 16px 8px;
-        }
-        .section-header-icon { font-size: 20px; }
-        .section-header-text {
-            font-size: 16px; font-weight: 500;
-            color: var(--md-sys-color-on-surface);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2px;
         }
 
-        /* === FEATURE LIST (M3 Cards) === */
-        .feature-list {
-            display: flex; flex-direction: column;
-            gap: 4px; padding: 0 12px;
+        .section-title {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-tertiary);
         }
 
-        .feature-card {
-            display: flex; align-items: center; gap: 10px;
-            background: var(--md-sys-color-surface-container);
-            border-radius: 12px;
+        .btn-ghost {
+            background: none;
+            border: none;
+            color: var(--accent-color);
+            font-size: 11px;
+            font-weight: 500;
+            font-family: inherit;
+            cursor: pointer;
+            padding: 2px 6px;
+            border-radius: var(--radius-sm);
+            transition: background 0.2s;
+        }
+        .btn-ghost:hover { background: var(--bg-elevated); }
+
+        #hw_support_label {
+            display: none;
+            font-size: 11px;
+            line-height: 1.5;
             padding: 10px 12px;
-            transition: background 0.15s;
-            cursor: default;
-            border: 1px solid transparent;
-        }
-        .feature-card:hover { background: var(--md-sys-color-surface-container-high); }
-        .feature-card.experimental {
-            border-color: color-mix(in srgb, var(--md-sys-color-tertiary) 30%, transparent);
+            background: var(--bg-surface);
+            border: 1px dashed var(--border-color);
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
         }
 
-        .feature-icon {
-            font-size: 20px; width: 28px; text-align: center; flex-shrink: 0;
+        /* === FEATURE LIST === */
+        .feature-item {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            padding: 10px 0;
+            gap: 16px;
+            border-bottom: 1px solid var(--border-color);
         }
-        .feature-text { flex: 1; min-width: 0; }
-        .feature-label {
-            font-size: 13px; font-weight: 500;
-            color: var(--md-sys-color-on-surface);
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        
+        .feature-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
         }
+
+        .feature-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .feature-title {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .icon-small { font-size: 14px; opacity: 0.8; }
+
         .feature-desc {
             font-size: 11px;
-            color: var(--md-sys-color-on-surface-variant);
+            line-height: 1.4;
+            color: var(--text-secondary);
+        }
+        
+        .badge-experimental {
+            font-size: 9px;
+            padding: 1px 5px;
+            background: var(--danger-bg);
+            color: var(--danger-color);
+            border-radius: 4px;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+        }
+
+        /* === iOS STYLE SWITCH === */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 36px;
+            height: 20px;
+            flex-shrink: 0;
             margin-top: 1px;
         }
-        .warn-badge {
-            font-size: 10px;
-            color: var(--md-sys-color-tertiary);
-            margin-left: 4px;
-        }
-
-        /* === M3 SWITCH === */
-        .m3-switch { position: relative; flex-shrink: 0; }
-        .m3-switch input { position: absolute; opacity: 0; width: 0; height: 0; }
-        .m3-track {
-            display: block;
-            width: 44px; height: 24px;
-            border-radius: 12px;
-            background: var(--md-sys-color-surface-container-high);
-            border: 2px solid var(--md-sys-color-outline);
-            position: relative;
-            cursor: pointer;
-            transition: background 0.2s, border-color 0.2s;
-        }
-        .m3-thumb {
+        .switch input { opacity: 0; width: 0; height: 0; }
+        
+        .slider {
             position: absolute;
-            top: 50%; left: 3px;
-            transform: translateY(-50%);
-            width: 14px; height: 14px;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: var(--bg-elevated);
+            border: 1px solid var(--border-color);
+            transition: .3s;
+            border-radius: var(--radius-full);
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px; width: 14px;
+            left: 2px; bottom: 2px;
+            background-color: var(--text-secondary);
+            transition: .3s;
             border-radius: 50%;
-            background: var(--md-sys-color-outline);
-            transition: left 0.2s, width 0.15s, height 0.15s, background 0.2s, box-shadow 0.2s;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 10px; color: transparent;
-        }
-        /* Checked state */
-        .m3-switch input:checked + .m3-track {
-            background: var(--md-sys-color-primary);
-            border-color: var(--md-sys-color-primary);
-        }
-        .m3-switch input:checked + .m3-track .m3-thumb {
-            left: calc(100% - 28px);
-            width: 24px; height: 24px;
-            background: var(--md-sys-color-on-primary);
-            color: var(--md-sys-color-primary);
-            box-shadow: 0 1px 3px rgba(0,0,0,0.4);
-        }
-        /* Hover ripple */
-        .m3-track:hover::after {
-            content: '';
-            position: absolute; inset: -8px;
-            border-radius: 50%;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
         }
 
-        /* === M3 DIVIDER === */
-        .m3-divider {
-            height: 1px;
-            background: var(--md-sys-color-outline-variant);
-            margin: 12px 16px;
+        input:checked + .slider {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+        input:checked + .slider:before {
+            background-color: #FFFFFF;
+            transform: translateX(16px);
         }
 
         /* === TERMINAL === */
-        .terminal-wrapper {
-            flex-shrink: 0;
-            border-top: 1px solid var(--md-sys-color-outline-variant);
+        .terminal {
+            border-top: 1px solid var(--border-color);
+            background: var(--bg-base);
+            height: 120px;
             display: flex;
             flex-direction: column;
-            max-height: 160px;
         }
-        .terminal-bar {
-            display: flex; align-items: center;
+        
+        .terminal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             padding: 6px 12px;
-            background: #0F0F0F;
-            gap: 6px;
+            background: var(--bg-surface);
+            border-bottom: 1px solid var(--border-color);
         }
-        .terminal-bar-title {
-            font-family: var(--md-ref-typeface-mono);
-            font-size: 10px;
-            color: #6A9955;
-            flex: 1;
-            letter-spacing: 0.5px;
+        
+        .terminal-title {
+            font-family: var(--font-mono);
+            font-size: 9px;
+            font-weight: 600;
+            color: var(--text-tertiary);
+            letter-spacing: 0.05em;
         }
-        .terminal-close {
-            background: none; border: none;
-            color: var(--md-sys-color-outline);
-            font-size: 14px; cursor: pointer;
-            line-height: 1; padding: 2px 4px;
-            border-radius: 4px;
-        }
-        .terminal-close:hover { color: var(--md-sys-color-error); background: rgba(242,184,184,0.08); }
-        .terminal-body {
-            background: #0D0D0D;
-            font-family: var(--md-ref-typeface-mono);
-            font-size: 10.5px;
+        
+        .terminal-content {
+            padding: 8px 12px;
             overflow-y: auto;
+            font-family: var(--font-mono);
+            font-size: 10px;
+            line-height: 1.5;
+            background: var(--bg-base);
             flex: 1;
-            padding: 6px 12px 8px;
-            scrollbar-width: thin;
-            scrollbar-color: #333 transparent;
         }
-        .t-line { margin-bottom: 3px; display: flex; gap: 6px; }
-        .t-ts { color: #555; flex-shrink: 0; }
-        .t-msg.info  { color: #A5D6A7; }
-        .t-msg.warn  { color: #FFD54F; }
-        .t-msg.error { color: #EF9A9A; }
-        .t-msg.log   { color: #90A4AE; }
-        .t-cursor {
-            display: inline-block; width: 7px; height: 12px;
-            background: #A5D6A7; vertical-align: middle;
-            animation: blink 1s step-end infinite;
-        }
-        @keyframes blink { 50% { opacity: 0; } }
-        .t-empty { color: #444; font-style: italic; }
+        
+        .t-line { color: var(--text-secondary); word-break: break-all; }
+        .t-time { color: var(--text-tertiary); margin-right: 6px; }
+        .t-blocked { color: var(--accent-color); }
+        .t-error { color: var(--danger-color); }
     </style>
 </head>
 <body>
 
-    <!-- TOP APP BAR -->
-    <header class="top-app-bar">
-        <span class="top-app-bar-title">▶ ytライト</span>
+    <header>
+        <div class="logo-area">
+            <span class="logo-icon">▶</span>
+            <span class="logo-text">YT Lite</span>
+        </div>
         <select id="theme_selector">
-            <option value="dark">Dark</option>
-            <option value="amoled">Amoled</option>
             <option value="light">Light</option>
+            <option value="dark">Dark</option>
+            <option value="amoled">OLED</option>
         </select>
     </header>
 
-    <!-- SCROLL AREA -->
     <div class="scroll-area">
 
-        <!-- Section Header -->
-        <div class="section-header">
-            <span class="section-header-icon">🛠️</span>
-            <span class="section-header-text">Controle de Codecs</span>
-            <button id="btn_detect_hw" style="margin-left: auto; padding: 4px 8px; border-radius: 4px; background: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-surface); border: none; cursor: pointer; font-size: 11px;">🕵️ Testar PC</button>
-        </div>
-        
-        <div class="feature-list">
-            <!-- Hardware Support Label -->
-            <div id="hw_support_label" style="display: none; font-size: 12px; margin: 0 4px 8px; padding: 8px; background: var(--md-sys-color-surface-container-high); border-radius: 8px; color: var(--md-sys-color-tertiary);"></div>
-
-            <div class="feature-card">
-                <span class="feature-icon">🎞️</span>
-                <div class="feature-text">
-                    <div class="feature-label">Bloquear AV1</div>
-                    <div class="feature-desc">Recomendado bloquear se não tiver RTX Série 30+/RX 6000+</div>
-                </div>
-                <label class="m3-switch">
-                    <input type="checkbox" id="feat_block_av1">
-                    <span class="m3-track"><span class="m3-thumb">✓</span></span>
-                </label>
-            </div>
-
-            <div class="feature-card">
-                <span class="feature-icon">🎞️</span>
-                <div class="feature-text">
-                    <div class="feature-label">Bloquear VP9</div>
-                    <div class="feature-desc">Recomendado se quiser forçar H264 (menos uso de CPU)</div>
-                </div>
-                <label class="m3-switch">
-                    <input type="checkbox" id="feat_block_vp9">
-                    <span class="m3-track"><span class="m3-thumb">✓</span></span>
-                </label>
+        <!-- CODECS -->
+        <div class="section">
+            <div class="section-header">
+                <span class="section-title">Controle de Codecs</span>
+                <button id="btn_detect_hw" class="btn-ghost">Testar Hardware</button>
             </div>
             
-            <div class="feature-card">
-                <span class="feature-icon">📼</span>
-                <div class="feature-text">
-                    <div class="feature-label">Bloquear H264</div>
-                    <div class="feature-desc">CUIDADO: Pode quebrar a reprodução se AV1/VP9 falharem</div>
+            <div id="hw_support_label"></div>
+
+            <div class="feature-item">
+                <div class="feature-info">
+                    <span class="feature-title"><span class="icon-small">🎞️</span> Bloquear AV1</span>
+                    <span class="feature-desc">Previne uso alto de CPU se sua placa de vídeo não tiver decodificador AV1.</span>
                 </div>
-                <label class="m3-switch">
-                    <input type="checkbox" id="feat_block_h264">
-                    <span class="m3-track"><span class="m3-thumb">✓</span></span>
-                </label>
+                <label class="switch"><input type="checkbox" id="feat_block_av1"><span class="slider"></span></label>
+            </div>
+
+            <div class="feature-item">
+                <div class="feature-info">
+                    <span class="feature-title"><span class="icon-small">🎞️</span> Bloquear VP9</span>
+                    <span class="feature-desc">Força o player a usar H.264 (mais eficiente na maioria das placas antigas).</span>
+                </div>
+                <label class="switch"><input type="checkbox" id="feat_block_vp9"><span class="slider"></span></label>
             </div>
             
-            <div class="feature-card">
-                <span class="feature-icon">🎧</span>
-                <div class="feature-text">
-                    <div class="feature-label">Bloquear Opus (Áudio)</div>
-                    <div class="feature-desc">Força o player a usar áudio MP4A/AAC</div>
+            <div class="feature-item">
+                <div class="feature-info">
+                    <span class="feature-title"><span class="icon-small">📼</span> Bloquear H.264</span>
+                    <span class="feature-desc">Cuidado: Ocultar o codec legado pode quebrar o player se AV1/VP9 falharem.</span>
                 </div>
-                <label class="m3-switch">
-                    <input type="checkbox" id="feat_block_opus">
-                    <span class="m3-track"><span class="m3-thumb">✓</span></span>
-                </label>
+                <label class="switch"><input type="checkbox" id="feat_block_h264"><span class="slider"></span></label>
             </div>
-
-            <div class="m3-divider"></div>
+            
+            <div class="feature-item">
+                <div class="feature-info">
+                    <span class="feature-title"><span class="icon-small">🎧</span> Bloquear Opus (Áudio)</span>
+                    <span class="feature-desc">Reverte o áudio para o padrão universal AAC.</span>
+                </div>
+                <label class="switch"><input type="checkbox" id="feat_block_opus"><span class="slider"></span></label>
+            </div>
         </div>
 
-        <div class="section-header">
-            <span class="section-header-icon">📺</span>
-            <span class="section-header-text">Otimizações Gerais</span>
+        <!-- PERFORMANCE -->
+        <div class="section">
+            <div class="section-header">
+                <span class="section-title">Performance & UI</span>
+            </div>
+
+            <div class="feature-item">
+                <div class="feature-info">
+                    <span class="feature-title"><span class="icon-small">🎬</span> Limite de 30 FPS</span>
+                    <span class="feature-desc">Remove opções de 60fps para vídeos muito pesados.</span>
+                </div>
+                <label class="switch"><input type="checkbox" id="feat_30fps_cap"><span class="slider"></span></label>
+            </div>
+
+            <div class="feature-item">
+                <div class="feature-info">
+                    <span class="feature-title"><span class="icon-small">📺</span> Resolução Máx. 720p</span>
+                    <span class="feature-desc">Impede que o YouTube carregue 1080p ou superior automaticamente.</span>
+                </div>
+                <label class="switch"><input type="checkbox" id="feat_max_720p"><span class="slider"></span></label>
+            </div>
+
+            <div class="feature-item">
+                <div class="feature-info">
+                    <span class="feature-title"><span class="icon-small">💡</span> Modo Ambiente</span>
+                    <span class="feature-desc">Remove o brilho cinemático que consome muita GPU.</span>
+                </div>
+                <label class="switch"><input type="checkbox" id="feat_ambient_off"><span class="slider"></span></label>
+            </div>
+            
+            <div class="feature-item">
+                <div class="feature-info">
+                    <span class="feature-title"><span class="icon-small">💀</span> Eco UI Extremo <span class="badge-experimental">BETA</span></span>
+                    <span class="feature-desc">Desativa animações, esconde Shorts e remove elementos pesados.</span>
+                </div>
+                <label class="switch"><input type="checkbox" id="feat_eco_ui"><span class="slider"></span></label>
+            </div>
+            
+            <div class="feature-item">
+                <div class="feature-info">
+                    <span class="feature-title"><span class="icon-small">🧪</span> Experimentos A/B</span>
+                    <span class="feature-desc">Congela flags do YouTube, impedindo testes de layout pesados em background.</span>
+                </div>
+                <label class="switch"><input type="checkbox" id="feat_ab_experiments"><span class="slider"></span></label>
+            </div>
         </div>
 
-        <!-- Feature Cards -->
-        <div class="feature-list">
-
-            <div class="feature-card">
-                <span class="feature-icon">🎬</span>
-                <div class="feature-text">
-                    <div class="feature-label">Limitar a 30fps</div>
-                    <div class="feature-desc">Bloqueia streams de 60fps+ para reduzir carga da GPU</div>
-                </div>
-                <label class="m3-switch">
-                    <input type="checkbox" id="feat_30fps_cap">
-                    <span class="m3-track"><span class="m3-thumb">✓</span></span>
-                </label>
+        <!-- MEDIA -->
+        <div class="section">
+            <div class="section-header">
+                <span class="section-title">Navegação & Mídia</span>
             </div>
 
-            <div class="feature-card">
-                <span class="feature-icon">📺</span>
-                <div class="feature-text">
-                    <div class="feature-label">Limitar Resolução a 720p</div>
-                    <div class="feature-desc">Engana o player para nunca pedir streams acima de HD</div>
+            <div class="feature-item">
+                <div class="feature-info">
+                    <span class="feature-title"><span class="icon-small">🖼️</span> Thumbnails Estáticas</span>
+                    <span class="feature-desc">Desativa previews em vídeo (WebP) ao passar o mouse.</span>
                 </div>
-                <label class="m3-switch">
-                    <input type="checkbox" id="feat_max_720p">
-                    <span class="m3-track"><span class="m3-thumb">✓</span></span>
-                </label>
+                <label class="switch"><input type="checkbox" id="feat_thumb_static"><span class="slider"></span></label>
             </div>
 
-            <div class="feature-card">
-                <span class="feature-icon">💡</span>
-                <div class="feature-text">
-                    <div class="feature-label">Desativar Modo Ambiente</div>
-                    <div class="feature-desc">Remove a iluminação cinemática ao redor do player</div>
+            <div class="feature-item">
+                <div class="feature-info">
+                    <span class="feature-title"><span class="icon-small">📦</span> Capas em Baixa Resolução</span>
+                    <span class="feature-desc">Carrega miniaturas menores (320x180) para economizar banda.</span>
                 </div>
-                <label class="m3-switch">
-                    <input type="checkbox" id="feat_ambient_off">
-                    <span class="m3-track"><span class="m3-thumb">✓</span></span>
-                </label>
+                <label class="switch"><input type="checkbox" id="feat_thumb_lowres"><span class="slider"></span></label>
             </div>
 
-            <div class="feature-card">
-                <span class="feature-icon">🖼️</span>
-                <div class="feature-text">
-                    <div class="feature-label">Thumbnails Estáticas</div>
-                    <div class="feature-desc">Remove o preview animado (WebP) ao passar o mouse</div>
+            <div class="feature-item">
+                <div class="feature-info">
+                    <span class="feature-title"><span class="icon-small">⏱️</span> Pausar Loops de Fundo</span>
+                    <span class="feature-desc">Congela cálculos de renderização se o vídeo estiver pausado.</span>
                 </div>
-                <label class="m3-switch">
-                    <input type="checkbox" id="feat_thumb_static">
-                    <span class="m3-track"><span class="m3-thumb">✓</span></span>
-                </label>
+                <label class="switch"><input type="checkbox" id="feat_pause_loops"><span class="slider"></span></label>
             </div>
 
-            <div class="feature-card">
-                <span class="feature-icon">📦</span>
-                <div class="feature-text">
-                    <div class="feature-label">Thumbnails em Baixa Resolução</div>
-                    <div class="feature-desc">Substitui capas HD por 320×180 (mqdefault)</div>
+            <div class="feature-item">
+                <div class="feature-info">
+                    <span class="feature-title"><span class="icon-small">🙈</span> Pausar em Aba Oculta</span>
+                    <span class="feature-desc">Pausa o vídeo automaticamente ao trocar de aba no navegador.</span>
                 </div>
-                <label class="m3-switch">
-                    <input type="checkbox" id="feat_thumb_lowres">
-                    <span class="m3-track"><span class="m3-thumb">✓</span></span>
-                </label>
+                <label class="switch"><input type="checkbox" id="feat_hidden_pause"><span class="slider"></span></label>
             </div>
 
-            <div class="feature-card">
-                <span class="feature-icon">⏱️</span>
-                <div class="feature-text">
-                    <div class="feature-label">Pausar Loops Secundários</div>
-                    <div class="feature-desc">Para cálculos de renderização quando o vídeo estiver pausado</div>
+            <div class="feature-item">
+                <div class="feature-info">
+                    <span class="feature-title"><span class="icon-small">🔊</span> Normalização de Áudio</span>
+                    <span class="feature-desc">Desativa a compressão de volume nativa do YouTube.</span>
                 </div>
-                <label class="m3-switch">
-                    <input type="checkbox" id="feat_pause_loops">
-                    <span class="m3-track"><span class="m3-thumb">✓</span></span>
-                </label>
+                <label class="switch"><input type="checkbox" id="feat_disable_ln"><span class="slider"></span></label>
             </div>
 
-            <div class="feature-card">
-                <span class="feature-icon">🙈</span>
-                <div class="feature-text">
-                    <div class="feature-label">Pausar em Aba Oculta</div>
-                    <div class="feature-desc">Visibility API (Opt-in) — pausa ao trocar de aba</div>
+            <div class="feature-item">
+                <div class="feature-info">
+                    <span class="feature-title"><span class="icon-small">🎙️</span> Dublagem por IA</span>
+                    <span class="feature-desc">Força o player a usar sempre a faixa de áudio Original.</span>
                 </div>
-                <label class="m3-switch">
-                    <input type="checkbox" id="feat_hidden_pause">
-                    <span class="m3-track"><span class="m3-thumb">✓</span></span>
-                </label>
+                <label class="switch"><input type="checkbox" id="feat_disable_ai_dub"><span class="slider"></span></label>
             </div>
-
-            <div class="feature-card">
-                <span class="feature-icon">🔊</span>
-                <div class="feature-text">
-                    <div class="feature-label">Desativar Normalização de Volume</div>
-                    <div class="feature-desc">Mantém o volume original sem compressão do YouTube</div>
-                </div>
-                <label class="m3-switch">
-                    <input type="checkbox" id="feat_disable_ln">
-                    <span class="m3-track"><span class="m3-thumb">✓</span></span>
-                </label>
-            </div>
-
-            <div class="feature-card">
-                <span class="feature-icon">🎙️</span>
-                <div class="feature-text">
-                    <div class="feature-label">Desativar Dublagem por IA</div>
-                    <div class="feature-desc">Reverte a faixa de áudio auto-traduzida para o original</div>
-                </div>
-                <label class="m3-switch">
-                    <input type="checkbox" id="feat_disable_ai_dub">
-                    <span class="m3-track"><span class="m3-thumb">✓</span></span>
-                </label>
-            </div>
-
-            <div class="feature-card">
-                <span class="feature-icon">💀</span>
-                <div class="feature-text">
-                    <div class="feature-label">Eco UI Extremo</div>
-                    <div class="feature-desc">Mata animações, Shorts e bloat oculto para máxima fluidez</div>
-                </div>
-                <label class="m3-switch">
-                    <input type="checkbox" id="feat_eco_ui">
-                    <span class="m3-track"><span class="m3-thumb">✓</span></span>
-                </label>
-            </div>
-
-            <div class="feature-card experimental">
-                <span class="feature-icon">🧪</span>
-                <div class="feature-text">
-                    <div class="feature-label">Desativar Experimentos A/B</div>
-                    <div class="feature-desc">Congela flags experimentais para evitar carregamento de bloat extra</div>
-                </div>
-                <label class="m3-switch">
-                    <input type="checkbox" id="feat_ab_experiments">
-                    <span class="m3-track"><span class="m3-thumb">✓</span></span>
-                </label>
-            </div>
-
         </div>
-
 
     </div>
 
-    <!-- TERMINAL DEBUG (Hidden by default, can be toggled if needed but we'll show it below the scroll) -->
-    <div class="terminal-wrapper" id="debug_terminal">
-        <div class="terminal-bar">
-            <span class="terminal-bar-title">TELEMETRY_BLOCK_LOGS</span>
-            <button class="terminal-close" id="btn_copy_logs" title="Copiar Logs">📋</button>
+    <!-- TERMINAL DEBUG -->
+    <div class="terminal">
+        <div class="terminal-header">
+            <span class="terminal-title">TELEMETRY_BLOCK_LOGS</span>
+            <button id="btn_copy_logs" class="btn-ghost" title="Copiar logs">Copy</button>
         </div>
-        <div class="terminal-body" id="log_output">
-            <div class="t-line t-empty">Aguardando interceptações na aba atual... <span class="t-cursor"></span></div>
+        <div class="terminal-content" id="log_output">
+            <div class="t-line">Aguardando telemetria...</div>
         </div>
     </div>
 

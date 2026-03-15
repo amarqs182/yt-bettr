@@ -18,3 +18,8 @@
 ## Etapa 5: Seleção de Codecs e Suporte a Hardware
 - [x] Alterar UI para permitir bloqueio de AV1, VP9, H264 e Opus individualmente
 - [x] Implementar detecção de hardware (API navigator.mediaCapabilities) para auxiliar na UI
+
+## Etapa 6: Melhorias de Design (UI)
+- [x] Refatorar popup.html para design minimalista
+- [x] Melhorar contrastes e simplificar as informações nas seções
+- [x] Atualizar o esquema de cores e espaçamento (CSS)
