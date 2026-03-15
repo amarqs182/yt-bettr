@@ -30,3 +30,8 @@
 - [x] Transformar Resolução em Seletor de múltiplas opções
 - [x] Transformar FPS em Seletor
 - [x] Atualizar scripts de background/features para aceitar valores ao invés de apenas true/false
+
+## Etapa 8: Reverter Codecs de Vídeo para Checkboxes
+- [x] Alterar UI para permitir múltiplas seleções de bloqueio de codecs novamente
+- [x] Restaurar lógicas de segurança (impedir bloqueio total)
+- [x] Manter os dropdowns para FPS e Resolução

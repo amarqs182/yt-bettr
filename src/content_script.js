@@ -8,8 +8,10 @@
  */
 
 const DEFAULTS = {
-    video_codec:    'auto',
-    audio_codec:    'auto',
+    block_av1:      true,
+    block_vp9:      true,
+    block_h264:     false,
+    block_opus:     false,
     max_res:        'auto',
     max_fps:        'auto',
     ambient_off:    true,

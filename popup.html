@@ -368,17 +368,26 @@
 
             <div class="feature-item">
                 <div class="feature-info">
-                    <span class="feature-title">Codec de Vídeo</span>
-                    <span class="feature-desc">Selecione qual formato de vídeo o player deve buscar.</span>
+                    <span class="feature-title"><span class="icon-small">🎞️</span> Bloquear AV1</span>
+                    <span class="feature-desc">Se o hardware não suportar.</span>
                 </div>
-                <div class="select-group">
-                    <select id="feat_video_codec" class="styled-select">
-                        <option value="auto">Auto (Padrão)</option>
-                        <option value="av1">Forçar AV1</option>
-                        <option value="vp9">Forçar VP9</option>
-                        <option value="h264">Forçar H.264</option>
-                    </select>
+                <label class="switch"><input type="checkbox" id="feat_block_av1"><span class="slider"></span></label>
+            </div>
+
+            <div class="feature-item">
+                <div class="feature-info">
+                    <span class="feature-title"><span class="icon-small">🎞️</span> Bloquear VP9</span>
+                    <span class="feature-desc">Rejeita o padrão secundário.</span>
                 </div>
+                <label class="switch"><input type="checkbox" id="feat_block_vp9"><span class="slider"></span></label>
+            </div>
+
+            <div class="feature-item">
+                <div class="feature-info">
+                    <span class="feature-title"><span class="icon-small">📼</span> Bloquear H.264</span>
+                    <span class="feature-desc">Rejeita o formato de segurança.</span>
+                </div>
+                <label class="switch"><input type="checkbox" id="feat_block_h264"><span class="slider"></span></label>
             </div>
 
             <div class="feature-item">
@@ -420,15 +429,10 @@
 
             <div class="feature-item">
                 <div class="feature-info">
-                    <span class="feature-title">Codec de Áudio</span>
-                    <span class="feature-desc">Escolha a taxa de compressão do áudio.</span>
+                    <span class="feature-title"><span class="icon-small">🎵</span> Bloquear Opus</span>
+                    <span class="feature-desc">Força o player a usar áudio MP4A/AAC.</span>
                 </div>
-                <div class="select-group">
-                    <select id="feat_audio_codec" class="styled-select">
-                        <option value="auto">Opus (Leve)</option>
-                        <option value="aac">AAC (Antigo)</option>
-                    </select>
-                </div>
+                <label class="switch"><input type="checkbox" id="feat_block_opus"><span class="slider"></span></label>
             </div>
 
             <div class="feature-item">
