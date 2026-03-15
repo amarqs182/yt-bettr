@@ -65,15 +65,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                     results.push(`H264: ${h264.powerEfficient ? '✅ Hardware' : (h264.supported ? '⚠️ Software' : '❌ Não')}`);
                 } catch(e) {}
-                
-                try {
-                    const opus = await navigator.mediaCapabilities.decodingInfo({
-                        type: 'media-source',
-                        audio: { contentType: 'audio/webm; codecs="opus"', channels: 2, bitrate: 130000, samplerate: 48000 }
-                    });
-                    // O Chrome reporta 'powerEfficient' true para Opus porque é leve pra CPU, não porque tem placa dedicada
-                    results.push(`Opus: ${opus.powerEfficient ? '✅ Eficiente (CPU Leve)' : (opus.supported ? '⚡ CPU' : '❌ Não')}`);
-                } catch(e) {}
             }
             
             hwLabel.innerHTML = `<strong>Decodificação do seu PC:</strong><br>${results.join('<br>')}<br><br><em>(Dica: Bloqueie codecs de vídeo marcados como 'Software' para evitar superaquecimento).</em>`;
