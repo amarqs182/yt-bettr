@@ -65,9 +65,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                     results.push(`H264: ${h264.powerEfficient ? '✅ Hardware' : (h264.supported ? '⚠️ Software' : '❌ Não')}`);
                 } catch(e) {}
+                
+                try {
+                    const opus = await navigator.mediaCapabilities.decodingInfo({
+                        type: 'media-source',
+                        audio: { contentType: 'audio/webm; codecs="opus"', channels: 2, bitrate: 130000, samplerate: 48000 }
+                    });
+                    // Opus is almost always software decoded, but it is extremely lightweight so we note it as CPU
+                    results.push(`Opus: ${opus.powerEfficient ? '✅ Hardware' : (opus.supported ? '⚡ CPU (Leve)' : '❌ Não')}`);
+                } catch(e) {}
             }
             
-            hwLabel.innerHTML = `<strong>Decodificação do seu PC:</strong><br>${results.join('<br>')}<br><br><em>(Dica: Se aparecer 'Software' ou 'Não', bloqueie o codec acima para evitar superaquecimento).</em>`;
+            hwLabel.innerHTML = `<strong>Decodificação do seu PC:</strong><br>${results.join('<br>')}<br><br><em>(Dica: Bloqueie codecs de vídeo marcados como 'Software' para evitar superaquecimento).</em>`;
             hwLabel.style.display = 'block';
             btnDetectHw.textContent = "Testado!";
         });
