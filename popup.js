@@ -71,8 +71,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         type: 'media-source',
                         audio: { contentType: 'audio/webm; codecs="opus"', channels: 2, bitrate: 130000, samplerate: 48000 }
                     });
-                    // Opus is almost always software decoded, but it is extremely lightweight so we note it as CPU
-                    results.push(`Opus: ${opus.powerEfficient ? '✅ Hardware' : (opus.supported ? '⚡ CPU (Leve)' : '❌ Não')}`);
+                    // O Chrome reporta 'powerEfficient' true para Opus porque é leve pra CPU, não porque tem placa dedicada
+                    results.push(`Opus: ${opus.powerEfficient ? '✅ Eficiente (CPU Leve)' : (opus.supported ? '⚡ CPU' : '❌ Não')}`);
                 } catch(e) {}
             }
             
