@@ -1,35 +1,58 @@
 # ytライト🌱 (YT Lite) 🪶 ▶🚀
 
-YT Lite is a refined, highly stable YouTube optimizer fork based on `h264ify` and `enhanced-h264ify`. 
-It focuses on deeply integrated hardware decoding detection to serve the most power-efficient video streams without breaking the YouTube experience with overly aggressive hacks.
-
-## 🌟 Core Features (Phase 1)
-
-- **Ambient Mode Remover:** Automatically strips the GPU-intensive "Ambient Mode" glow effect from the player.
-- **Telemetry Blocker:** Silently intercepts and blocks intensive data-gathering requests (`log_event`, `stats/qoe`, `stats/ads`) without breaking the player.
-
-## 🔋 Eco Mode Features (Phase 2)
-- **Background Pause Optimization:** When a video is paused, YT Lite safely intercepts `requestVideoFrameCallback` to kill the internal rendering loop, dropping CPU usage near zero while maintaining seek/scrub functionality.
-- **Hidden Tab Auto-Pause (Opt-In):** Automatically pauses the video when you switch away from the YouTube tab.
-- **A/B Experiment Disabler (Opt-In / Experimental):** Freezes `yt.config_.EXPERIMENT_FLAGS` to prevent YouTube from loading multiple sets of heavy experimental layout scripts.
-
-## 🚀 What We *Don't* Do (Discarded Hacks)
-Unlike messy performance extensions, YT Lite avoids hacks that break core functionality:
-- ❌ We do *not* spoof your screen size (`innerWidth`).
-- ❌ We do *not* globally throttle `requestAnimationFrame` (which breaks UI animations).
-- ❌ We do *not* freeze `ytInitialPlayerResponse` (which breaks video-to-video navigation).
-- ❌ We do *not* block `base.js` or `videoplayback?preload` completely.
+**YT Lite** é um otimizador refinado e de alta estabilidade para YouTube, focado em entregar a melhor performance e qualidade visual sem comprometer a experiência do usuário. Diferente de outras extensões, o YT Lite utiliza detecção profunda de hardware para servir os streams de vídeo mais eficientes para o seu PC.
 
 ---
 
-## 🛠️ Installation
+## 🎮 Modos de Operação (YT Lite Auto)
 
-1. Clone or download this repository.
-2. Open your Chromium-based browser (Chrome, Edge, Brave, etc.).
-3. Navigate to `chrome://extensions/`.
-4. Enable **Developer Mode** (usually a toggle in the top right corner).
-5. Click **Load unpacked** and select the `/ytライト` directory.
-6. The "YT Lite ▶🚀" icon will appear in your extensions list.
+O YT Lite se adapta instantaneamente às suas necessidades através de três perfis inteligentes:
 
-## 💻 Technical Details
-This project builds upon the foundations of [erkserkserks/h264ify](https://github.com/erkserkserks/h264ify) and [alextrv/enhanced-h264ify](https://github.com/alextrv/enhanced-h264ify). It introduces custom ES6+ overrides in `inject_eco.js` to manage the advanced performance hooks. All `localStorage` keys are namespaced to `yt-lite-`.
+- **Auto Lite:** Focado em economia extrema. Força o uso de H.264, limita a resolução a 480p/30fps e ativa todas as otimizações de interface para preservar CPU e bateria.
+- **Auto High:** A experiência Premium. Libera AV1 (se suportado por hardware), resoluções até 4K/60fps e ativa automaticamente os filtros visuais e de áudio de alta fidelidade.
+- **Custom:** Liberdade total para você configurar cada codec, filtro e limite individualmente.
+
+---
+
+## ✨ Recursos Premium (Modo High)
+
+Eleve a sua experiência de visualização com processamento de imagem e som de nível profissional:
+
+- **Nitidez /|\:** Sharpening acelerado por GPU via filtros compostos nativos, proporcionando bordas cristalinas sem artefatos ou halos.
+- **Destaque <>:** Um algoritmo refinado de HDR que melhora o contraste e a profundidade de cor de forma natural, sem saturar excessivamente a imagem.
+- **Granulação (*):** Filtro de granulação cinematográfica animado (24fps) baseado em Canvas com distribuição gaussiana e mesclagem *soft-light*, proporcionando uma textura orgânica de película 35mm.
+- **Áudio Hi-Fi:** Equalização dinâmica com assinatura "V-Shape" (Bass Boost + Treble Clarity) e compressão musical para um som mais encorpado e detalhado.
+
+---
+
+## ⚡ Performance e Economia (Eco Mode)
+
+- **Bloqueador de Telemetria:** Interceptação em nível de rede via `declarativeNetRequest` de requisições pesadas de coleta de dados (`log_event`, `stats/qoe`, `stats/ads`).
+- **Otimização de Loops:** Intercepta o `requestVideoFrameCallback` para pausar loops de renderização inúteis quando o vídeo está parado, reduzindo o uso de CPU a quase zero.
+- **Modo OLED Real:** Força o fundo da página do YouTube para preto puro (#000000), economizando energia em telas OLED/AMOLED.
+- **Eco UI Extremo:** Remove animações pesadas, esconde Shorts e limpa elementos de interface que poluem a DOM e consomem recursos.
+
+---
+
+## 💻 Arquitetura Técnica
+
+- **Manifest V3 Compliant:** Totalmente aderente aos novos padrões de segurança e performance do Chrome.
+- **Trusted Types Ready:** Construção segura do DOM sem uso de `innerHTML`, garantindo compatibilidade com as políticas de segurança mais rígidas do YouTube.
+- **Low Latency Sync:** Sistema de sincronização em tempo real via atributos DOM e eventos customizados, permitindo que as alterações no popup reflitam instantaneamente no player sem necessidade de recarregar a página.
+- **Hardware-Aware:** Integração com a API `navigator.mediaCapabilities` para recomendar as melhores configurações baseadas na sua placa de vídeo real.
+
+---
+
+## 🛠️ Instalação
+
+1. Clone ou baixe este repositório.
+2. Abra seu navegador baseado em Chromium (Chrome, Edge, Brave, etc.).
+3. Navegue até `chrome://extensions/`.
+4. Ative o **Modo do Desenvolvedor** (canto superior direito).
+5. Clique em **Carregar sem pacote** e selecione a pasta do projeto.
+6. O ícone do **YT Lite ▶🚀** aparecerá na sua barra de ferramentas.
+
+---
+
+## 📜 Licença
+Distribuído sob a licença MIT. Baseado nos conceitos originais de `h264ify`.
