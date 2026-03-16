@@ -1,13 +1,15 @@
 /**
  * src/features/enhancer.js
  * Premium Visual and Audio Enhancements for High Mode.
- * Trusted Types Compliant: Uses DOM API instead of innerHTML.
+ * Trusted Types Compliant: No innerHTML used.
  */
 
 (function() {
     'use strict';
 
     if (window.self !== window.top || window.location.href === 'about:blank') return;
+
+    console.log("YT Lite: Enhancer.js Loading (V3-Safe)");
 
     const getS = (k) => document.documentElement.getAttribute('data-ytl-' + k) === 'true';
 
@@ -64,7 +66,9 @@
         defs.appendChild(grain);
         svg.appendChild(defs);
 
-        (document.body || document.documentElement).appendChild(svg);
+        // Safely append to document
+        const target = document.body || document.documentElement;
+        target.appendChild(svg);
     };
 
     // --- 2. VISUAL ENGINE ---
@@ -86,6 +90,7 @@
         if (useHDR) filters.push('contrast(1.05) saturate(1.12) brightness(1.01)');
         if (useSharp) filters.push('url(#ytl-sharpen)');
 
+        // textContent is safe for TrustedHTML
         style.textContent = `
             video.html5-main-video {
                 filter: ${filters.length ? filters.join(' ') : 'none'} !important;
@@ -116,10 +121,10 @@
 
         if (video.ytlAudioHooked) {
             const r = 0.1;
-            bass.gain.setTargetAtTime(active ? 3 : 0, 0, r);
-            treble.gain.setTargetAtTime(active ? 4 : 0, 0, r);
-            gain.gain.setTargetAtTime(active ? 1.1 : 1, 0, r);
-            comp.threshold.setTargetAtTime(active ? -20 : 0, 0, r);
+            if (bass) bass.gain.setTargetAtTime(active ? 3 : 0, 0, r);
+            if (treble) treble.gain.setTargetAtTime(active ? 4 : 0, 0, r);
+            if (gain) gain.gain.setTargetAtTime(active ? 1.1 : 1, 0, r);
+            if (comp) comp.threshold.setTargetAtTime(active ? -20 : 0, 0, r);
             return;
         }
 
@@ -141,13 +146,21 @@
 
             video.ytlAudioHooked = true;
             updateAudio();
-        } catch(e) {}
+        } catch(e) {
+            console.log("YT Lite: Audio context init failed (likely CORS)");
+        }
     };
 
-    const run = () => { updateUI(); updateAudio(); };
+    const run = () => { 
+        updateUI(); 
+        updateAudio(); 
+    };
+
     window.addEventListener('yt-lite-sync', run);
     window.addEventListener('yt-navigate-finish', () => setTimeout(run, 1000));
-    document.addEventListener('click', () => audioCtx?.state === 'suspended' && audioCtx.resume());
+    document.addEventListener('click', () => {
+        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    });
     
     setInterval(run, 3000);
     run();
