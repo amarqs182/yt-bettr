@@ -1,9 +1,8 @@
 /**
  * src/features/enhancer.js
  * Premium Visual and Audio Enhancements for High Mode.
- * - Grain: High-performance Animated Canvas Overlay with Live Intensity Slider.
- * - Visuals: Distinct SVG Sharpening and Natural HDR.
- * - Audio: Crossfading Pro-Equalizer (Instant Toggle).
+ * Trusted Types Compliant: No innerHTML used.
+ * Improved: Robust Canvas Grain & Instant Audio Engine.
  */
 
 (function() {
@@ -35,7 +34,7 @@
         (document.body || document.documentElement).appendChild(svg);
     };
 
-    // --- 2. PRO CANVAS GRAIN ENGINE ---
+    // --- 2. IMPROVED CANVAS GRAIN ENGINE ---
     let grainCanvas = null;
     let grainCtx = null;
     let grainFrames = [];
@@ -44,15 +43,15 @@
 
     const initGrainPatterns = () => {
         if (grainFrames.length > 0) return;
-        for (let f = 0; f < 12; f++) {
+        for (let f = 0; f < 10; f++) {
             const canvas = document.createElement('canvas');
-            canvas.width = canvas.height = 128; // Smaller for speed
+            canvas.width = canvas.height = 256;
             const ctx = canvas.getContext('2d');
-            const imgData = ctx.createImageData(128, 128);
+            const imgData = ctx.createImageData(256, 256);
             const data = imgData.data;
             for (let i = 0; i < data.length; i += 4) {
-                const val = Math.random() * 255;
-                data[i] = data[i+1] = data[i+2] = val;
+                const val = Math.floor(Math.random() * 255);
+                data[i] = data[i+1] = data[i+2] = val; // Mono
                 data[i+3] = 255;
             }
             ctx.putImageData(imgData, 0, 0);
@@ -62,12 +61,12 @@
 
     const updateGrain = () => {
         const useGrain = getB('enhance_grain');
-        const rawIntensity = parseInt(getS('grain_intensity') || '15', 10);
-        const intensity = rawIntensity / 100;
+        const intensity = (parseInt(getS('grain_intensity') || '15', 10)) / 100;
         
-        // We target the video container specifically for best alignment
-        const container = document.querySelector('.html5-video-container');
-        if (!useGrain || !container) {
+        // Target movie_player for best coverage
+        const player = document.getElementById('movie_player');
+        
+        if (!useGrain || !player) {
             if (grainCanvas) grainCanvas.style.display = 'none';
             if (grainInterval) { clearInterval(grainInterval); grainInterval = null; }
             return;
@@ -78,9 +77,9 @@
         if (!grainCanvas) {
             grainCanvas = document.createElement('canvas');
             grainCanvas.id = 'ytl-grain-canvas';
-            // High z-index but pointer-events: none so it doesn't block player clicks
-            grainCanvas.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:5;mix-blend-mode:overlay;';
-            container.appendChild(grainCanvas);
+            // Max Z-index, pointer-events none to prevent click interference
+            grainCanvas.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:2147483647;mix-blend-mode:overlay;';
+            player.appendChild(grainCanvas);
             grainCtx = grainCanvas.getContext('2d');
         }
 
@@ -91,10 +90,10 @@
             grainInterval = setInterval(() => {
                 if (!getB('enhance_grain')) return;
                 
-                // Adjust canvas resolution to parent container
-                if (grainCanvas.width !== container.offsetWidth || grainCanvas.height !== container.offsetHeight) {
-                    grainCanvas.width = container.offsetWidth;
-                    grainCanvas.height = container.offsetHeight;
+                // Sync size
+                if (grainCanvas.width !== player.offsetWidth || grainCanvas.height !== player.offsetHeight) {
+                    grainCanvas.width = player.offsetWidth;
+                    grainCanvas.height = player.offsetHeight;
                 }
                 
                 if (grainCanvas.width === 0) return;
@@ -103,7 +102,7 @@
                 const pattern = grainCtx.createPattern(grainFrames[currentFrame], 'repeat');
                 grainCtx.fillStyle = pattern;
                 grainCtx.fillRect(0, 0, grainCanvas.width, grainCanvas.height);
-            }, 45); // ~22fps cinematic noise
+            }, 45);
         }
     };
 
@@ -122,9 +121,7 @@
         const useSharp = getB('enhance_sharpness');
 
         let filters = [];
-        // True HDR: ONLY deep contrast and saturation (no artificial sharpening)
         if (useHDR) filters.push('contrast(1.05) saturate(1.10)');
-        // True Sharpness: Using the convolution matrix
         if (useSharp) filters.push('url(#ytl-sharpen)');
 
         style.textContent = `
@@ -145,26 +142,18 @@
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             source = audioCtx.createMediaElementSource(video);
             
-            // Nodes
-            bassNode = audioCtx.createBiquadFilter(); 
-            bassNode.type = "lowshelf"; bassNode.frequency.value = 150;
-            
-            trebleNode = audioCtx.createBiquadFilter(); 
-            trebleNode.type = "highshelf"; trebleNode.frequency.value = 4500;
-            
+            bassNode = audioCtx.createBiquadFilter(); bassNode.type = "lowshelf"; bassNode.frequency.value = 150;
+            trebleNode = audioCtx.createBiquadFilter(); trebleNode.type = "highshelf"; trebleNode.frequency.value = 4500;
             compressorNode = audioCtx.createDynamicsCompressor();
             compressorNode.threshold.value = -22;
             compressorNode.ratio.value = 3;
 
-            // Fader System
             dryNode = audioCtx.createGain();
             wetNode = audioCtx.createGain();
 
-            // Chain: Source -> Dry -> Destination
             source.connect(dryNode);
             dryNode.connect(audioCtx.destination);
 
-            // Chain: Source -> FX -> Wet -> Destination
             source.connect(bassNode);
             bassNode.connect(trebleNode);
             trebleNode.connect(compressorNode);
@@ -172,10 +161,7 @@
             wetNode.connect(audioCtx.destination);
 
             video.ytlAudioHooked = true;
-            console.log("YT Lite: Audio Engine Initialized");
-        } catch(e) {
-            console.warn("YT Lite: Audio Hook blocked (CORS)");
-        }
+        } catch(e) {}
     };
 
     const updateAudioLive = () => {
@@ -187,18 +173,14 @@
         if (!video.ytlAudioHooked) return;
 
         const ramp = 0.1;
-        // CROSSFADE: Swap between Dry and Wet signals instantly
         if (dryNode) dryNode.gain.setTargetAtTime(active ? 0 : 1, 0, ramp);
         if (wetNode) wetNode.gain.setTargetAtTime(active ? 1 : 0, 0, ramp);
-        
-        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+        if (audioCtx?.state === 'suspended') audioCtx.resume();
     };
 
     const run = () => { updateVisuals(); updateAudioLive(); };
     window.addEventListener('yt-lite-sync', run);
-    window.addEventListener('yt-navigate-finish', () => {
-        setTimeout(run, 1500);
-    });
+    window.addEventListener('yt-navigate-finish', () => setTimeout(run, 1500));
     document.addEventListener('click', () => {
         if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
     });
