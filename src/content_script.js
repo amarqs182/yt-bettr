@@ -1,58 +1,43 @@
 /**
  * src/content_script.js
  *
- * Runs in ISOLATED world.
- * 1. Loads settings from chrome.storage.local.
- * 2. Mirrors them to document.documentElement.dataset for the MAIN world to see.
- * 3. Does NOT use inline scripts (to bypass YouTube CSP).
+ * Isolated World.
+ * Syncs storage to DOM attributes.
  */
 
-const DEFAULTS = {
-    block_av1:      true,
-    block_vp9:      true,
-    block_h264:     false,
-    block_opus:     false,
-    max_res:        'auto',
-    max_fps:        'auto',
-    ambient_off:    true,
-    thumb_static:   true,
-    thumb_lowres:   false,
-    pause_loops:    true,
-    hidden_pause:   false,
-    disable_ln:     false,
-    disable_ai_dub: true,
-    eco_ui:         false,
-    no_transparency: false,
-    ab_experiments: false,
-    theme:          'dark',
-    enhance_sharpness: false,
-    enhance_hdr:       false,
-    enhance_audio:     false,
-    enhance_grain:     false,
-    run_mode:          'lite'
-};
+console.log("YT Lite: Content Script Loaded");
+document.documentElement.setAttribute('data-ytl-cs-loaded', 'true');
 
-const syncToDataset = (settings) => {
-    // We prefix each key with ytl- to avoid conflicts
-    for (const [k, v] of Object.entries(settings)) {
+const keys = [
+    'block_av1', 'block_vp9', 'block_h264', 'block_opus',
+    'max_res', 'max_fps', 'ambient_off', 'thumb_static',
+    'thumb_lowres', 'pause_loops', 'hidden_pause', 'disable_ln',
+    'disable_ai_dub', 'eco_ui', 'no_transparency', 'ab_experiments',
+    'theme', 'enhance_sharpness', 'enhance_hdr', 'enhance_audio',
+    'enhance_grain', 'grain_intensity', 'run_mode'
+];
+
+const sync = (data) => {
+    console.log("YT Lite: Syncing data to DOM", data);
+    for (const [k, v] of Object.entries(data)) {
         document.documentElement.setAttribute('data-ytl-' + k, String(v));
     }
-    // Also dispatch a custom event that the MAIN world can hear
     window.dispatchEvent(new CustomEvent('yt-lite-sync'));
 };
 
-// Initial Fetch and Sync
-chrome.storage.local.get(null, (stored) => {
-    const opts = { ...DEFAULTS, ...stored };
-    syncToDataset(opts);
+chrome.storage.local.get(keys, (stored) => {
+    if (chrome.runtime.lastError) {
+        console.error("YT Lite: Storage Error", chrome.runtime.lastError);
+        return;
+    }
+    sync(stored);
 });
 
-// Live Sync on change (popup clicks)
 chrome.storage.onChanged.addListener((changes, area) => {
     if (area !== 'local') return;
     const updates = {};
-    for (const [key, { newValue }] of Object.entries(changes)) {
-        updates[key] = newValue;
+    for (const k of keys) {
+        if (changes[k]) updates[k] = changes[k].newValue;
     }
-    syncToDataset(updates);
+    sync(updates);
 });

@@ -10,7 +10,8 @@
 
     if (window.self !== window.top || window.location.href === 'about:blank') return;
 
-    const getS = (k) => document.documentElement.getAttribute('data-ytl-' + k) === 'true';
+    const getS = (k) => document.documentElement.getAttribute('data-ytl-' + k);
+    const getB = (k) => getS(k) === 'true';
 
     // --- 1. SVG SHARPEN FILTER (Safe DOM) ---
     const injectSVG = () => {
@@ -50,7 +51,8 @@
             const imgData = ctx.createImageData(256, 256);
             const data = imgData.data;
             for (let i = 0; i < data.length; i += 4) {
-                const val = 128 + (Math.random() - 0.5) * 50; // Subtle intensity
+                // Professional Gray Noise
+                const val = Math.floor(Math.random() * 255);
                 data[i] = data[i+1] = data[i+2] = val;
                 data[i+3] = 255;
             }
@@ -60,10 +62,11 @@
     };
 
     const updateGrain = () => {
-        const useGrain = getS('enhance_grain');
+        const useGrain = getB('enhance_grain');
+        const intensity = parseInt(getS('grain_intensity') || '15', 10) / 100;
         const player = document.querySelector('#movie_player') || document.querySelector('.html5-video-container');
         
-        if (!useGrain) {
+        if (!useGrain || !player) {
             if (grainCanvas) grainCanvas.style.display = 'none';
             if (grainInterval) { clearInterval(grainInterval); grainInterval = null; }
             return;
@@ -74,25 +77,32 @@
         if (!grainCanvas) {
             grainCanvas = document.createElement('canvas');
             grainCanvas.id = 'ytl-grain-canvas';
-            grainCanvas.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:10;mix-blend-mode:overlay;opacity:0.15;';
+            grainCanvas.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:10;mix-blend-mode:overlay;';
+            player.style.position = player.style.position || 'relative';
             player.appendChild(grainCanvas);
             grainCtx = grainCanvas.getContext('2d');
         }
 
         grainCanvas.style.display = 'block';
+        grainCanvas.style.opacity = intensity.toString();
         
         if (!grainInterval) {
             grainInterval = setInterval(() => {
-                if (!getS('enhance_grain')) return;
-                const w = grainCanvas.width = grainCanvas.clientWidth;
-                const h = grainCanvas.height = grainCanvas.clientHeight;
-                if (w === 0 || h === 0) return;
+                if (!getB('enhance_grain')) return;
+                
+                // Sync canvas size with player
+                if (grainCanvas.width !== player.offsetWidth || grainCanvas.height !== player.offsetHeight) {
+                    grainCanvas.width = player.offsetWidth;
+                    grainCanvas.height = player.offsetHeight;
+                }
+                
+                if (grainCanvas.width === 0 || grainCanvas.height === 0) return;
 
                 currentFrame = (currentFrame + 1) % grainFrames.length;
                 const pattern = grainCtx.createPattern(grainFrames[currentFrame], 'repeat');
                 grainCtx.fillStyle = pattern;
-                grainCtx.fillRect(0, 0, w, h);
-            }, 42); // 24fps
+                grainCtx.fillRect(0, 0, grainCanvas.width, grainCanvas.height);
+            }, 42); // ~24fps
         }
     };
 
@@ -107,11 +117,10 @@
             document.head.appendChild(style);
         }
 
-        const useHDR = getS('enhance_hdr');
-        const useSharp = getS('enhance_sharpness');
+        const useHDR = getB('enhance_hdr');
+        const useSharp = getB('enhance_sharpness');
 
         let filters = [];
-        // Natural HDR: Toned down to avoid overlap with sharpen
         if (useHDR) filters.push('contrast(1.04) saturate(1.08) brightness(1.01)');
         if (useSharp) filters.push('url(#ytl-sharpen)');
 
@@ -128,13 +137,12 @@
     let audioCtx, source, bass, treble, comp, gain;
 
     const updateAudio = () => {
-        const active = getS('enhance_audio');
+        const active = getB('enhance_audio');
         const video = document.querySelector('video');
         if (!video) return;
 
         if (video.ytlAudioHooked) {
             const r = 0.1;
-            // Immediate neutral bypass when inactive
             if (bass)   bass.gain.setTargetAtTime(active ? 3.5 : 0, 0, r);
             if (treble) treble.gain.setTargetAtTime(active ? 4.5 : 0, 0, r);
             if (gain)   gain.gain.setTargetAtTime(active ? 1.15 : 1, 0, r);
@@ -169,7 +177,9 @@
     const run = () => { updateVisuals(); updateAudio(); };
     window.addEventListener('yt-lite-sync', run);
     window.addEventListener('yt-navigate-finish', () => setTimeout(run, 1500));
-    document.addEventListener('click', () => audioCtx?.state === 'suspended' && audioCtx.resume());
+    document.addEventListener('click', () => {
+        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    });
     
     setInterval(run, 4000);
     run();
