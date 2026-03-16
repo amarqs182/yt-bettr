@@ -1,7 +1,8 @@
 /**
  * src/features/enhancer.js
  * Premium Visual and Audio Enhancements for High Mode.
- * Corrected: Grain is fully visible (high z-index), Audio is restored and stable.
+ * Trusted Types Compliant: No innerHTML or unsafe assignments.
+ * Professional Features: SVG Convolution Sharpen, Natural HDR, and High-Fidelity Animated Film Grain.
  */
 
 (function() {
@@ -12,7 +13,7 @@
     const getS = (k) => document.documentElement.getAttribute('data-ytl-' + k);
     const getB = (k) => getS(k) === 'true';
 
-    // --- 1. SVG SHARPEN FILTER ---
+    // --- 1. SVG SHARPEN FILTER (Safe DOM) ---
     const injectSVG = () => {
         const id = 'ytl-svg-defs';
         if (document.getElementById(id)) return;
@@ -33,7 +34,7 @@
         (document.body || document.documentElement).appendChild(svg);
     };
 
-    // --- 2. PRO CANVAS GRAIN ENGINE ---
+    // --- 2. PROFESSIONAL CANVAS GRAIN ENGINE ---
     let grainCanvas = null;
     let grainCtx = null;
     let grainFrames = [];
@@ -42,14 +43,18 @@
 
     const initGrainPatterns = () => {
         if (grainFrames.length > 0) return;
-        for (let f = 0; f < 10; f++) {
+        // 12 frames = loop less noticeable
+        for (let f = 0; f < 12; f++) {
             const canvas = document.createElement('canvas');
-            canvas.width = canvas.height = 256;
+            canvas.width = canvas.height = 512; // 512px avoids visible tiling on 1080p
             const ctx = canvas.getContext('2d');
-            const imgData = ctx.createImageData(256, 256);
+            const imgData = ctx.createImageData(512, 512);
             const data = imgData.data;
             for (let i = 0; i < data.length; i += 4) {
-                const val = Math.floor(Math.random() * 255);
+                // Approximate Gaussian distribution centered at 128
+                let val = 0;
+                for (let s = 0; s < 4; s++) val += Math.random();
+                val = Math.floor((val / 4) * 128 + 64); // range ~64–192
                 data[i] = data[i+1] = data[i+2] = val;
                 data[i+3] = 255;
             }
@@ -60,9 +65,10 @@
 
     const updateGrain = () => {
         const useGrain = getB('enhance_grain');
-        const intensity = (parseInt(getS('grain_intensity') || '15', 10)) / 100;
-        const player = document.getElementById('movie_player');
+        const rawIntensity = parseInt(getS('grain_intensity') || '15', 10);
+        const intensity = rawIntensity / 100;
         
+        const player = document.getElementById('movie_player') || document.querySelector('.html5-video-container');
         if (!useGrain || !player) {
             if (grainCanvas) grainCanvas.style.display = 'none';
             if (grainInterval) { clearInterval(grainInterval); grainInterval = null; }
@@ -74,7 +80,8 @@
         if (!grainCanvas) {
             grainCanvas = document.createElement('canvas');
             grainCanvas.id = 'ytl-grain-canvas';
-            grainCanvas.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:2147483647;mix-blend-mode:overlay;';
+            // mix-blend-mode: soft-light is more subtle and cinematic
+            grainCanvas.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:2147483647;mix-blend-mode:soft-light;';
             player.appendChild(grainCanvas);
             grainCtx = grainCanvas.getContext('2d');
         }
@@ -85,16 +92,19 @@
         if (!grainInterval) {
             grainInterval = setInterval(() => {
                 if (!getB('enhance_grain')) return;
+                
                 if (grainCanvas.width !== player.offsetWidth || grainCanvas.height !== player.offsetHeight) {
                     grainCanvas.width = player.offsetWidth;
                     grainCanvas.height = player.offsetHeight;
                 }
+                
                 if (grainCanvas.width === 0) return;
+
                 currentFrame = (currentFrame + 1) % grainFrames.length;
                 const pattern = grainCtx.createPattern(grainFrames[currentFrame], 'repeat');
                 grainCtx.fillStyle = pattern;
                 grainCtx.fillRect(0, 0, grainCanvas.width, grainCanvas.height);
-            }, 45);
+            }, 42); // ~24fps cinematic noise
         }
     };
 
@@ -125,11 +135,11 @@
         updateGrain();
     };
 
-    // --- 4. AUDIO ENGINE (Stable Restoration) ---
+    // --- 4. AUDIO ENGINE ---
     let audioCtx, source, bass, treble, compressor, mainGain;
 
     const setupAudio = (video) => {
-        if (video.ytLiteAudioHooked) return;
+        if (video.ytlAudioHooked) return;
         try {
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             source = audioCtx.createMediaElementSource(video);
@@ -139,18 +149,14 @@
             compressor = audioCtx.createDynamicsCompressor();
             mainGain = audioCtx.createGain();
 
-            // Simple Serial Chain: Source -> Bass -> Treble -> Comp -> Gain -> Out
             source.connect(bass);
             bass.connect(treble);
             treble.connect(compressor);
             compressor.connect(mainGain);
             mainGain.connect(audioCtx.destination);
 
-            video.ytLiteAudioHooked = true;
-            console.log("YT Lite: Audio System Hooked");
-        } catch(e) {
-            console.warn("YT Lite: Audio CORS restricted.");
-        }
+            video.ytlAudioHooked = true;
+        } catch(e) {}
     };
 
     const updateAudioLive = () => {
@@ -158,11 +164,10 @@
         const video = document.querySelector('video');
         if (!video) return;
 
-        if (!video.ytLiteAudioHooked) setupAudio(video);
-        if (!video.ytLiteAudioHooked) return;
+        if (!video.ytlAudioHooked) setupAudio(video);
+        if (!video.ytlAudioHooked) return;
 
         const ramp = 0.1;
-        // If active, apply boosts. If inactive, go to neutral (0 gain / 1.0 main volume)
         if (bass) bass.gain.setTargetAtTime(active ? 3.5 : 0, 0, ramp);
         if (treble) treble.gain.setTargetAtTime(active ? 4.5 : 0, 0, ramp);
         if (mainGain) mainGain.gain.setTargetAtTime(active ? 1.15 : 1.0, 0, ramp);

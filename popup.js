@@ -1,6 +1,7 @@
 /**
  * popup.js — YT Lite
  * Mode Selection: Lite | High | Custom
+ * Slider handling for Grain intensity.
  */
 
 const TOGGLE_MAP = [
@@ -22,12 +23,17 @@ const SELECT_MAP = [
     { id: 'feat_max_res',        key: 'max_res',         def: 'auto' }
 ];
 
+const SLIDER_MAP = [
+    { id: 'feat_grain_intensity', key: 'grain_intensity', def: 15, labelId: 'grain_val' }
+];
+
 const DEFAULTS = {
     block_av1: true, block_vp9: true, block_h264: false, block_opus: false,
     max_fps: 'auto', theme: 'dark', run_mode: 'lite', first_run: true
 };
 TOGGLE_MAP.forEach(t => DEFAULTS[t.key] = t.def);
 SELECT_MAP.forEach(s => DEFAULTS[s.key] = s.def);
+SLIDER_MAP.forEach(s => DEFAULTS[s.key] = s.def);
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -151,6 +157,19 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!el) return;
             el.value = stored[key];
             el.addEventListener('change', () => chrome.storage.local.set({ [key]: el.value }));
+        });
+
+        // --- WIRE SLIDERS ---
+        SLIDER_MAP.forEach(({id, key, labelId}) => {
+            const el = document.getElementById(id);
+            const lbl = document.getElementById(labelId);
+            if (!el) return;
+            el.value = stored[key] ?? 15;
+            if (lbl) lbl.textContent = el.value;
+            el.addEventListener('input', () => {
+                if (lbl) lbl.textContent = el.value;
+                chrome.storage.local.set({ [key]: parseInt(el.value, 10) });
+            });
         });
 
         // --- WIRE SEGMENTED CONTROLS ---
