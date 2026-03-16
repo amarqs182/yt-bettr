@@ -1,7 +1,9 @@
 /**
  * src/features/enhancer.js
  * Premium Visual and Audio Enhancements for High Mode.
- * Refined: True HDR (Contrast-only depth) and Perfect Audio Bypass.
+ * - Destaque <>: Better HDR (Contrast + Saturation)
+ * - Nitidez /|\: Real SVG Convolution Sharpening
+ * - Granulação (*): Modern Film Grain via SVG Turbulence
  */
 
 (function() {
@@ -11,69 +13,113 @@
 
     const getS = (k) => document.documentElement.getAttribute('data-ytl-' + k) === 'true';
 
-    // --- 1. REFINED VISUAL FILTERS ---
+    // --- 1. SVG FILTER DEFINITIONS ---
+    const injectSVGFilters = () => {
+        const id = 'yt-lite-svg-filters';
+        if (document.getElementById(id)) return;
+
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.id = id;
+        svg.style.display = 'none';
+        svg.innerHTML = `
+            <defs>
+                <!-- Real Sharpening Filter (Convolution Matrix) -->
+                <filter id="ytl-filter-sharpen">
+                    <feConvolveMatrix order="3" preserveAlpha="true" kernelMatrix="0 -1 0 -1 5 -1 0 -1 0" />
+                </filter>
+
+                <!-- Modern Film Grain Filter -->
+                <filter id="ytl-filter-grain">
+                    <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" />
+                    <feColorMatrix type="saturate" values="0" />
+                    <feComponentTransfer>
+                        <feFuncR type="linear" slope="0.15" />
+                        <feFuncG type="linear" slope="0.15" />
+                        <feFuncB type="linear" slope="0.15" />
+                        <feFuncA type="linear" slope="0.05" />
+                    </feComponentTransfer>
+                    <feComposite operator="in" in2="SourceGraphic" />
+                </filter>
+            </defs>
+        `;
+        (document.head || document.documentElement).appendChild(svg);
+    };
+
+    // --- 2. LIVE VISUAL FILTERS ---
     const updateVisualFX = () => {
-        const id = 'yt-lite-premium-fx';
-        let style = document.getElementById(id);
+        const useDestaque = getS('enhance_hdr');
+        const useNitidez  = getS('enhance_sharpness');
+        const useGrain    = getS('enhance_grain');
         
-        if (!getS('enhance_sharpness') && !getS('enhance_hdr')) {
+        const styleId = 'yt-lite-premium-fx';
+        let style = document.getElementById(styleId);
+        
+        if (!useDestaque && !useNitidez && !useGrain) {
             if (style) style.remove();
             return;
         }
 
+        injectSVGFilters();
+
         if (!style) {
             style = document.createElement('style');
-            style.id = id;
+            style.id = styleId;
             (document.head || document.documentElement).appendChild(style);
         }
 
-        let filters = [];
-        // HDR: Toned down contrast to avoid fake sharpening look. Focus on depth.
-        if (getS('enhance_hdr')) {
-            filters.push('contrast(1.04) saturate(1.06) brightness(1.01)');
+        let cssFilters = [];
+        // Destaque <> (Combined HDR + Depth)
+        if (useDestaque) {
+            cssFilters.push('contrast(1.08) saturate(1.15) brightness(1.02)');
         }
-        // Sharpness: Distinct 1.02 contrast boost
-        if (getS('enhance_sharpness')) {
-            filters.push('contrast(1.02)');
+        
+        // Nitidez /|\ (Real SVG Sharpening)
+        if (useNitidez) {
+            cssFilters.push('url(#ytl-filter-sharpen)');
         }
 
+        // Apply filters to video element
         style.textContent = `
             video.html5-main-video {
-                filter: ${filters.join(' ')} !important;
-                /* Sharpness only applies rendering hint if specifically enabled */
-                ${getS('enhance_sharpness') ? 'image-rendering: -webkit-optimize-contrast !important;' : 'image-rendering: auto !important;'}
+                filter: ${cssFilters.join(' ')} !important;
+                will-change: filter;
+            }
+            
+            /* Grain Overlay (Applied via pseudo-element on the container to avoid blocking video interactions) */
+            .html5-video-container::after {
+                content: "";
+                position: absolute;
+                top: 0; left: 0; width: 100%; height: 100%;
+                pointer-events: none;
+                z-index: 1;
+                ${useGrain ? 'filter: url(#ytl-filter-grain); opacity: 1;' : 'display: none;'}
             }
         `;
     };
 
-    // --- 2. HIGH-FIDELITY DYNAMIC AUDIO (With Perfect Bypass) ---
+    // --- 3. AUDIO ENHANCEMENTS (V-Shape Signature) ---
     let audioCtx = null;
     let source = null;
-    let compressor = null;
     let bassBoost = null;
     let trebleBoost = null;
+    let compressor = null;
     let gainNode = null;
 
     const applyAudioFX = () => {
+        const active = getS('enhance_audio');
         const video = document.querySelector('video');
         if (!video) return;
 
-        const active = getS('enhance_audio');
-
-        if (audioCtx && audioCtx.state === 'suspended') {
-            audioCtx.resume();
-        }
+        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
 
         if (video.ytLiteAudioHooked) {
-            // IMMEDIATE BYPASS: Set all gains to neutral instantly when deactivated
-            const ramp = 0.05; // 50ms for click-free switching
-            if (bassBoost)   bassBoost.gain.setTargetAtTime(active ? 3.0 : 0, 0, ramp);
-            if (trebleBoost) trebleBoost.gain.setTargetAtTime(active ? 4.0 : 0, 0, ramp);
-            if (gainNode)    gainNode.gain.setTargetAtTime(active ? 1.1 : 1.0, 0, ramp);
+            const ramp = 0.05;
+            if (bassBoost)   bassBoost.gain.setTargetAtTime(active ? 3.5 : 0, 0, ramp);
+            if (trebleBoost) trebleBoost.gain.setTargetAtTime(active ? 4.5 : 0, 0, ramp);
+            if (gainNode)    gainNode.gain.setTargetAtTime(active ? 1.15 : 1.0, 0, ramp);
             if (compressor) {
-                // If inactive, set threshold to 0 (no compression) and ratio to 1 (unity)
-                compressor.threshold.setTargetAtTime(active ? -20 : 0, 0, ramp);
-                compressor.ratio.setTargetAtTime(active ? 2.5 : 1, 0, ramp);
+                compressor.threshold.setTargetAtTime(active ? -22 : 0, 0, ramp);
+                compressor.ratio.setTargetAtTime(active ? 3 : 1, 0, ramp);
             }
             return;
         }
@@ -87,20 +133,19 @@
             bassBoost = audioCtx.createBiquadFilter();
             bassBoost.type = "lowshelf";
             bassBoost.frequency.value = 150;
-            bassBoost.gain.value = 3.0;
+            bassBoost.gain.value = 3.5;
 
             trebleBoost = audioCtx.createBiquadFilter();
             trebleBoost.type = "highshelf";
             trebleBoost.frequency.value = 4500;
-            trebleBoost.gain.value = 4.0;
+            trebleBoost.gain.value = 4.5;
 
             compressor = audioCtx.createDynamicsCompressor();
-            compressor.threshold.value = -20;
-            compressor.knee.value = 40;
-            compressor.ratio.value = 2.5;
+            compressor.threshold.value = -22;
+            compressor.ratio.value = 3;
 
             gainNode = audioCtx.createGain();
-            gainNode.gain.value = 1.1;
+            gainNode.gain.value = 1.15;
 
             source.connect(bassBoost);
             bassBoost.connect(trebleBoost);
@@ -114,12 +159,10 @@
         }
     };
 
-    // Global click resume
     document.addEventListener('click', () => {
         if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-    }, { once: false });
+    });
 
-    // Listen for sync event from isolated world (Now perfectly matching)
     window.addEventListener('yt-lite-sync', () => {
         updateVisualFX();
         applyAudioFX();

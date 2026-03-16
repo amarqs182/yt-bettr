@@ -321,6 +321,30 @@
         .t-time { color: var(--text-tertiary); margin-right: 6px; }
         .t-blocked { color: var(--accent-color); }
         .t-error { color: var(--danger-color); }
+
+        /* === SMART MODE STYLES === */
+        .smart-header {
+            background: var(--bg-surface);
+            padding: 12px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .smart-info { display: flex; flex-direction: column; gap: 1px; }
+        .smart-title { font-size: 12px; font-weight: 600; color: var(--accent-color); display: flex; align-items: center; gap: 4px; }
+        .smart-desc { font-size: 10px; color: var(--text-tertiary); }
+        
+        /* When smart mode is on, we visually fade manual controls */
+        .smart-active .feature-item, 
+        .smart-active .segmented-control,
+        .smart-active .styled-select {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        
+        .smart-active .section-header .btn-ghost { display: none; }
     </style>
 </head>
 <body>
@@ -337,7 +361,20 @@
         </select>
     </header>
 
-    <div class="scroll-area">
+    <!-- MODE SELECTION AREA -->
+    <div class="smart-header">
+        <div class="smart-info">
+            <span class="smart-title">🎮 Modo de Operação</span>
+            <span class="smart-desc" id="smart_status">Escolha como o YT Lite deve agir.</span>
+        </div>
+        <div class="segmented-control" id="group_run_mode" style="width: 180px; margin-top: 0;">
+            <button class="segment-btn" data-val="lite">Lite</button>
+            <button class="segment-btn" data-val="high">High</button>
+            <button class="segment-btn" data-val="custom">Custom</button>
+        </div>
+    </div>
+
+    <div class="scroll-area" id="main_scroll">
 
         <!-- CODECS -->
         <div class="section">
@@ -448,6 +485,45 @@
             <div class="feature-item">
                 <div class="feature-info"><span class="feature-title">Bloquear Experimentos</span></div>
                 <label class="switch"><input type="checkbox" id="feat_ab_experiments"><span class="slider"></span></label>
+            </div>
+        </div>
+
+        <!-- PREMIUM ENHANCEMENTS -->
+        <div class="section">
+            <div class="section-header">
+                <span class="section-title">✨ Melhorias Premium (High)</span>
+            </div>
+
+            <div class="feature-item">
+                <div class="feature-info">
+                    <span class="feature-title">Destaque &lt;&gt;</span>
+                    <span class="feature-desc">HDR + Cores vibrantes e profundidade.</span>
+                </div>
+                <label class="switch"><input type="checkbox" id="feat_enhance_hdr"><span class="slider"></span></label>
+            </div>
+
+            <div class="feature-item">
+                <div class="feature-info">
+                    <span class="feature-title">Nitidez /|\</span>
+                    <span class="feature-desc">Filtro de nitidez real via hardware.</span>
+                </div>
+                <label class="switch"><input type="checkbox" id="feat_enhance_sharpness"><span class="slider"></span></label>
+            </div>
+
+            <div class="feature-item">
+                <div class="feature-info">
+                    <span class="feature-title">Granulação (*)</span>
+                    <span class="feature-desc">Efeito de granulação de filme moderno.</span>
+                </div>
+                <label class="switch"><input type="checkbox" id="feat_enhance_grain"><span class="slider"></span></label>
+            </div>
+
+            <div class="feature-item">
+                <div class="feature-info">
+                    <span class="feature-title">Expansão de Som</span>
+                    <span class="feature-desc">Palco sonoro mais amplo e imersivo.</span>
+                </div>
+                <label class="switch"><input type="checkbox" id="feat_enhance_audio"><span class="slider"></span></label>
             </div>
         </div>
 

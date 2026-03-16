@@ -28,6 +28,7 @@ const DEFAULTS = {
     enhance_sharpness: false,
     enhance_hdr:       false,
     enhance_audio:     false,
+    enhance_grain:     false,
     run_mode:          'lite'
 };
 
