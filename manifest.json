@@ -32,7 +32,8 @@
         "src/features/audio_ln.js",
         "src/features/pause.js",
         "src/features/eco.js",
-        "src/features/experiments.js"
+        "src/features/experiments.js",
+        "src/features/enhancer.js"
       ],
       "run_at": "document_start",
       "world": "MAIN",
