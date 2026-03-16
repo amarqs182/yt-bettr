@@ -2,14 +2,13 @@
  * src/features/enhancer.js
  * Premium Visual and Audio Enhancements for High Mode.
  * Trusted Types Compliant: No innerHTML used.
+ * Cinematic Refinement: High-Fidelity Animated Film Grain & Professional Tone Mapping.
  */
 
 (function() {
     'use strict';
 
     if (window.self !== window.top || window.location.href === 'about:blank') return;
-
-    console.log("YT Lite: Enhancer.js Loading (V3-Safe)");
 
     const getS = (k) => document.documentElement.getAttribute('data-ytl-' + k) === 'true';
 
@@ -25,7 +24,7 @@
 
         const defs = document.createElementNS(ns, "defs");
 
-        // A. Sharpen Filter
+        // A. Sharpen Filter (Convolution Matrix)
         const sharpen = document.createElementNS(ns, "filter");
         sharpen.id = "ytl-sharpen";
         const convolve = document.createElementNS(ns, "feConvolveMatrix");
@@ -35,13 +34,15 @@
         sharpen.appendChild(convolve);
         defs.appendChild(sharpen);
 
-        // B. Grain Filter
+        // B. Professional Animated Grain Filter
         const grain = document.createElementNS(ns, "filter");
         grain.id = "ytl-grain";
         
         const turb = document.createElementNS(ns, "feTurbulence");
+        turb.id = "ytl-grain-turb";
         turb.setAttribute("type", "fractalNoise");
-        turb.setAttribute("baseFrequency", "0.8");
+        // baseFrequency 0.6 - 0.9 for fine 35mm grain
+        turb.setAttribute("baseFrequency", "0.75");
         turb.setAttribute("numOctaves", "3");
         turb.setAttribute("stitchTiles", "stitch");
         grain.appendChild(turb);
@@ -51,10 +52,13 @@
         sat.setAttribute("values", "0");
         grain.appendChild(sat);
 
+        // Professional Tone Mapping: Grain is more visible in midtones/shadows
         const trans = document.createElementNS(ns, "feComponentTransfer");
         const funcA = document.createElementNS(ns, "feFuncA");
-        funcA.setAttribute("type", "linear");
-        funcA.setAttribute("slope", "0.07");
+        funcA.setAttribute("type", "table");
+        // Values: Grain intensity mapped across brightness. 
+        // We reduce it at 0.0 (deep blacks) and 1.0 (highlights) for realism.
+        funcA.setAttribute("tableValues", "0 0.15 0.20 0.15 0.05"); 
         trans.appendChild(funcA);
         grain.appendChild(trans);
 
@@ -66,12 +70,14 @@
         defs.appendChild(grain);
         svg.appendChild(defs);
 
-        // Safely append to document
         const target = document.body || document.documentElement;
         target.appendChild(svg);
     };
 
     // --- 2. VISUAL ENGINE ---
+    let grainSeed = 0;
+    let grainInterval = null;
+
     const updateUI = () => {
         injectSVG();
         const styleId = 'ytl-premium-styles';
@@ -87,27 +93,46 @@
         const useGrain = getS('enhance_grain');
 
         let filters = [];
-        if (useHDR) filters.push('contrast(1.05) saturate(1.12) brightness(1.01)');
+        if (useHDR) filters.push('contrast(1.06) saturate(1.10) brightness(1.01)');
         if (useSharp) filters.push('url(#ytl-sharpen)');
 
-        // textContent is safe for TrustedHTML
         style.textContent = `
             video.html5-main-video {
                 filter: ${filters.length ? filters.join(' ') : 'none'} !important;
+                will-change: filter;
             }
             .ytl-grain-overlay {
                 position: absolute; top: 0; left: 0; width: 100%; height: 100%;
                 pointer-events: none; z-index: 10;
                 filter: url(#ytl-grain);
                 display: ${useGrain ? 'block' : 'none'};
+                mix-blend-mode: overlay;
+                opacity: 0.6; /* Balanced for professional look */
             }
         `;
 
+        // Ensure grain div exists
         const container = document.querySelector('.html5-video-container');
         if (container && !document.querySelector('.ytl-grain-overlay')) {
             const grain = document.createElement('div');
             grain.className = 'ytl-grain-overlay';
             container.appendChild(grain);
+        }
+
+        // Animation Loop for Real Grain (only when enabled)
+        if (useGrain) {
+            if (!grainInterval) {
+                grainInterval = setInterval(() => {
+                    const turb = document.getElementById('ytl-grain-turb');
+                    if (turb) {
+                        grainSeed = (grainSeed + 1) % 1000;
+                        turb.setAttribute('seed', grainSeed.toString());
+                    }
+                }, 41); // ~24fps for cinematic noise feel
+            }
+        } else if (grainInterval) {
+            clearInterval(grainInterval);
+            grainInterval = null;
         }
     };
 
@@ -122,9 +147,9 @@
         if (video.ytlAudioHooked) {
             const r = 0.1;
             if (bass) bass.gain.setTargetAtTime(active ? 3 : 0, 0, r);
-            if (treble) treble.gain.setTargetAtTime(active ? 4 : 0, 0, r);
+            if (treble) treble.gain.setTargetAtTime(active ? 4.5 : 0, 0, r);
             if (gain) gain.gain.setTargetAtTime(active ? 1.1 : 1, 0, r);
-            if (comp) comp.threshold.setTargetAtTime(active ? -20 : 0, 0, r);
+            if (comp) comp.threshold.setTargetAtTime(active ? -22 : 0, 0, r);
             return;
         }
 
@@ -134,7 +159,7 @@
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             source = audioCtx.createMediaElementSource(video);
             bass = audioCtx.createBiquadFilter(); bass.type = "lowshelf"; bass.frequency.value = 150;
-            treble = audioCtx.createBiquadFilter(); treble.type = "highshelf"; treble.frequency.value = 4000;
+            treble = audioCtx.createBiquadFilter(); treble.type = "highshelf"; treble.frequency.value = 4500;
             comp = audioCtx.createDynamicsCompressor();
             gain = audioCtx.createGain();
 
@@ -146,16 +171,10 @@
 
             video.ytlAudioHooked = true;
             updateAudio();
-        } catch(e) {
-            console.log("YT Lite: Audio context init failed (likely CORS)");
-        }
+        } catch(e) {}
     };
 
-    const run = () => { 
-        updateUI(); 
-        updateAudio(); 
-    };
-
+    const run = () => { updateUI(); updateAudio(); };
     window.addEventListener('yt-lite-sync', run);
     window.addEventListener('yt-navigate-finish', () => setTimeout(run, 1000));
     document.addEventListener('click', () => {
