@@ -104,14 +104,13 @@
         // True HDR: Deep contrast and saturation boost
         if (useHDR) filters.push('contrast(1.05) saturate(1.10)');
         
-        // GPU-Accelerated Sharpening: Native CSS filter + image-rendering hint
-        if (useSharp) filters.push('contrast(1.02) brightness(1.01)');
+        // GPU-Accelerated Sharpening: Compound filter for visible edge clarity without halos
+        if (useSharp) filters.push('contrast(1.08) saturate(1.05)');
 
         style.textContent = `
             video.html5-main-video {
                 filter: ${filters.length ? filters.join(' ') : 'none'} !important;
                 will-change: filter;
-                ${useSharp ? 'image-rendering: -webkit-optimize-contrast !important; image-rendering: crisp-edges !important;' : ''}
             }
         `;
         updateGrain();
